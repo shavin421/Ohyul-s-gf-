@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OhyulSpace 🌊 | Tracker Harian & Keuangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            /* Ocean Blue Gradient Background */
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0891b2 100%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+        
+        /* Glassmorphism utility classes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(6, 182, 212, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.8);
+        }
+
+        .strike-through {
+            text-decoration: line-through;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <!-- Header / Dashboard -->
+    <header class="w-full max-w-5xl mb-8">
+        <div class="glass-panel rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-200 mb-2">
+                    Hai, Ohyul's gf! 🌊✨
+                </h1>
+                <p class="text-cyan-100/80 text-sm md:text-base">Siap jadi versi terbaik kamu hari ini? Stay cool & hemat selalu.</p>
+            </div>
+            
+            <!-- Budget & Savings Summary -->
+            <div class="glass-panel p-4 rounded-2xl w-full md:w-auto min-w-[250px]">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-cyan-200"><i class="ph ph-wallet mr-1"></i> Budget Harian</span>
+                    <span class="text-sm font-bold text-white">Rp 100.000</span>
+                </div>
+                <div class="text-2xl font-bold mb-2 tracking-tight" id="remainingBudgetDisplay">
+                    Rp 100.000
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800/50 rounded-full h-2.5 mb-1">
+                    <div class="bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-500" id="budgetProgressBar" style="width: 100%"></div>
+                </div>
+                <p class="text-xs text-cyan-200/60 mt-1" id="budgetMessage">Aman bestie, belum ada jajan! 💸</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        
+        <!-- ==================== LEFT: SCHEDULE & TO-DO ==================== -->
+        <section class="glass-panel rounded-3xl p-6 flex flex-col h-[600px]">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-cyan-500/20 rounded-xl text-cyan-300">
+                    <i class="ph ph-calendar-check text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Jadwal & Misi Hari Ini</h2>
+                    <p class="text-xs text-cyan-100/60">Biar harimu tertata dan nggak overthinking.</p>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <form id="taskForm" class="flex gap-2 mb-6">
+                <input type="text" id="taskInput" placeholder="Mau ngapain hari ini?" required
+                    class="glass-input flex-1 rounded-xl px-4 py-3 text-sm placeholder-cyan-100/40">
+                <button type="submit" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-xl px-4 py-3 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/30 font-semibold">
+                    <i class="ph ph-plus text-lg"></i>
+                </button>
+            </form>
+
+            <!-- Task List -->
+            <div class="flex-1 overflow-y-auto pr-2 space-y-3" id="taskList">
+                <!-- Tasks will be injected here via JS -->
+            </div>
+        </section>
+
+        <!-- ==================== RIGHT: EXPENSE TRACKER ==================== -->
+        <section class="glass-panel rounded-3xl p-6 flex flex-col h-[600px]">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-blue-500/20 rounded-xl text-blue-300">
+                    <i class="ph ph-receipt text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Catatan Jajan (No FOMO)</h2>
+                    <p class="text-xs text-cyan-100/60">Inget tujuan nabung buat masa depan, ya! 🚀</p>
+                </div>
+            </div>
+
+            <!-- Add Expense Form -->
+            <form id="expenseForm" class="flex flex-col gap-3 mb-6">
+                <input type="text" id="expenseName" placeholder="Nama pengeluaran (Cth: Kopi susu)" required
+                    class="glass-input rounded-xl px-4 py-3 text-sm placeholder-cyan-100/40">
+                
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-100/60 text-sm">Rp</span>
+                        <input type="number" id="expenseAmount" placeholder="0" required min="1"
+                            class="glass-input w-full rounded-xl pl-10 pr-4 py-3 text-sm placeholder-cyan-100/40">
+                    </div>
+                    <button type="submit" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white rounded-xl px-6 py-3 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/30 font-semibold flex items-center gap-2">
+                        Catat <i class="ph ph-paper-plane-right"></i>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Expense List -->
+            <div class="flex-1 overflow-y-auto pr-2 space-y-3" id="expenseList">
+                <!-- Expenses will be injected here via JS -->
+            </div>
+            
+            <!-- Total Footer -->
+            <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+                <span class="text-sm font-semibold text-cyan-200">Total Duit Keluar:</span>
+                <span class="text-xl font-bold text-red-400" id="totalExpenseDisplay">Rp 0</span>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-12 text-center text-cyan-100/40 text-sm">
+        Dibuat spesial untuk <strong>Ohyul</strong> ✨ | Stay Cool, Stay Wealthy.
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- State Management (In-Memory) ---
+        // For a simple single session. 
+        let tasks = [
+            { id: 1, text: "Minum air putih 2 Liter 💧", completed: false },
+            { id: 2, text: "Fokus ngerjain tugas / kerjaan 💻", completed: false },
+            { id: 3, text: "Olahraga ringan 15 menit 🏃‍♂️", completed: true }
+        ];
+
+        let expenses = [];
+        const DAILY_BUDGET = 100000; // Rp 100.000 budget harian
+
+        // --- DOM Elements ---
+        const taskForm = document.getElementById('taskForm');
+        const taskInput = document.getElementById('taskInput');
+        const taskList = document.getElementById('taskList');
+
+        const expenseForm = document.getElementById('expenseForm');
+        const expenseName = document.getElementById('expenseName');
+        const expenseAmount = document.getElementById('expenseAmount');
+        const expenseList = document.getElementById('expenseList');
+        
+        const totalExpenseDisplay = document.getElementById('totalExpenseDisplay');
+        const remainingBudgetDisplay = document.getElementById('remainingBudgetDisplay');
+        const budgetProgressBar = document.getElementById('budgetProgressBar');
+        const budgetMessage = document.getElementById('budgetMessage');
+
+        // --- Utility Format Currency ---
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(number);
+        };
+
+        // ==================== TASKS LOGIC ====================
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                taskList.innerHTML = `
+                    <div class="text-center p-6 text-cyan-100/40 flex flex-col items-center">
+                        <i class="ph ph-coffee text-4xl mb-2"></i>
+                        <p class="text-sm">Yeay, jadwal kosong! Waktunya me-time.</p>
+                    </div>`;
+                return;
+            }
+
+            tasks.forEach(task => {
+                const taskEl = document.createElement('div');
+                taskEl.className = `glass-panel p-3 rounded-xl flex items-center justify-between group transition-all duration-300 hover:bg-white/10 ${task.completed ? 'opacity-60' : ''}`;
+                
+                taskEl.innerHTML = `
+                    <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleTask(${task.id})">
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-cyan-500 border-cyan-500' : 'border-cyan-500/50 group-hover:border-cyan-400'}">
+                            ${task.completed ? '<i class="ph ph-check text-white text-sm"></i>' : ''}
+                        </div>
+                        <span class="text-sm font-medium ${task.completed ? 'strike-through' : 'text-white'}">${task.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${task.id})" class="text-red-400/50 hover:text-red-400 hover:bg-red-400/10 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                        <i class="ph ph-trash text-lg"></i>
+                    </button>
+                `;
+                taskList.appendChild(taskEl);
+            });
+        }
+
+        function addTask(e) {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if (text) {
+                tasks.unshift({
+                    id: Date.now(),
+                    text: text,
+                    completed: false
+                });
+                taskInput.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(task => 
+                task.id === id ? { ...task, completed: !task.completed } : task
+            );
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            renderTasks();
+        }
+
+        // ==================== EXPENSE LOGIC ====================
+
+        function updateFinanceDashboard() {
+            const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+            const remaining = DAILY_BUDGET - totalExpense;
+            
+            // Update Displays
+            totalExpenseDisplay.textContent = formatRupiah(totalExpense);
+            remainingBudgetDisplay.textContent = formatRupiah(remaining > 0 ? remaining : 0);
+            
+            if (remaining < 0) {
+                remainingBudgetDisplay.classList.add('text-red-400');
+                remainingBudgetDisplay.classList.remove('text-white');
+            } else {
+                remainingBudgetDisplay.classList.remove('text-red-400');
+                remainingBudgetDisplay.classList.add('text-white');
+            }
+
+            // Update Progress Bar
+            const percentage = Math.max(0, Math.min(100, (remaining / DAILY_BUDGET) * 100));
+            budgetProgressBar.style.width = `${percentage}%`;
+            
+            // Change bar color based on remaining budget
+            if (percentage < 20) {
+                budgetProgressBar.className = "bg-gradient-to-r from-red-500 to-orange-500 h-2.5 rounded-full transition-all duration-500";
+                budgetMessage.textContent = "Waduh, dompet nangis nih! Puasa jajan dulu 🛑";
+                budgetMessage.classList.add('text-red-300');
+                budgetMessage.classList.remove('text-cyan-200/60');
+            } else if (percentage < 50) {
+                budgetProgressBar.className = "bg-gradient-to-r from-yellow-400 to-orange-400 h-2.5 rounded-full transition-all duration-500";
+                budgetMessage.textContent = "Ngerem dikit Ohyul, udah setengah jalan! ⚠️";
+                budgetMessage.classList.remove('text-red-300');
+                budgetMessage.classList.add('text-yellow-200/80');
+            } else {
+                budgetProgressBar.className = "bg-gradient-to-r from-cyan-400 to-blue-500 h-2.5 rounded-full transition-all duration-500";
+                budgetMessage.textContent = "Aman bestie, pertahankan! 💸✨";
+                budgetMessage.classList.remove('text-red-300', 'text-yellow-200/80');
+                budgetMessage.classList.add('text-cyan-200/60');
+            }
+        }
+
+        function renderExpenses() {
+            expenseList.innerHTML = '';
+            
+            if (expenses.length === 0) {
+                expenseList.innerHTML = `
+                    <div class="text-center p-6 text-cyan-100/40 flex flex-col items-center">
+                        <i class="ph ph-piggy-bank text-4xl mb-2"></i>
+                        <p class="text-sm">Keren! Belum ada pengeluaran.<br>Tabungan aman!</p>
+                    </div>`;
+                return;
+            }
+
+            expenses.forEach(exp => {
+                const expEl = document.createElement('div');
+                expEl.className = `glass-panel p-3 rounded-xl flex items-center justify-between group hover:bg-white/10 transition-colors`;
+                
+                expEl.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="w-10 h-10 rounded-xl bg-red-500/20 text-red-300 flex items-center justify-center">
+                            <i class="ph ph-money text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white">${exp.name}</p>
+                            <p class="text-xs text-cyan-100/60">${new Date(exp.id).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-red-300">- ${formatRupiah(exp.amount)}</span>
+                        <button onclick="deleteExpense(${exp.id})" class="text-red-400/50 hover:text-red-400 hover:bg-red-400/10 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 hidden md:block">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                `;
+                // Add click-to-delete for mobile
+                expEl.onclick = (e) => {
+                    if(window.innerWidth < 768) {
+                         if(confirm(`Hapus catatan: ${exp.name}?`)) deleteExpense(exp.id);
+                    }
+                }
+                expenseList.appendChild(expEl);
+            });
+            
+            updateFinanceDashboard();
+        }
+
+        function addExpense(e) {
+            e.preventDefault();
+            const name = expenseName.value.trim();
+            const amount = parseInt(expenseAmount.value);
+            
+            if (name && amount && amount > 0) {
+                expenses.unshift({
+                    id: Date.now(),
+                    name: name,
+                    amount: amount
+                });
+                expenseName.value = '';
+                expenseAmount.value = '';
+                renderExpenses();
+            }
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(exp => exp.id !== id);
+            renderExpenses();
+        }
+
+        // --- Event Listeners ---
+        taskForm.addEventListener('submit', addTask);
+        expenseForm.addEventListener('submit', addExpense);
+
+        // --- Initial Render ---
+        renderTasks();
+        renderExpenses();
+
+    </script>
+</body>
+</html>
